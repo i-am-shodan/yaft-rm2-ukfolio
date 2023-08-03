@@ -298,9 +298,6 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
   };
 
   switch (scancode) {
-    case KEY_EQUAL:
-      scancode = alt ? '=' : scancode;
-      break;
     case Up:
       scancode = shift ? PageUp : scancode;
       break;
