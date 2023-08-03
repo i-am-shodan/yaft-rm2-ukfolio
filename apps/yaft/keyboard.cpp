@@ -155,7 +155,7 @@ static_assert(
 const std::vector<EvKeyInfo> keymap = {
   { KEY_ESC, Escape },
   { KEY_1, '1', '!' },
-  { KEY_2, '2', '@' },
+  { KEY_2, '2', '"' },
   { KEY_3, '3', '#' },
   { KEY_4, '4', '$' },
   { KEY_5, '5', '%' },
@@ -165,7 +165,7 @@ const std::vector<EvKeyInfo> keymap = {
   { KEY_9, '9', '(' },
   { KEY_0, '0', ')' },
   { KEY_MINUS, '-', '_' },
-  { KEY_EQUAL, '=', '+' },
+  { KEY_EQUAL, '-', '_' },
   { KEY_BACKSPACE, Backspace },
   { KEY_TAB, Tab },
   { KEY_Q, 'Q' },
@@ -280,6 +280,8 @@ const char*
 getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
   static std::array<char, 512> buf;
 
+  printf("Received Scancode = %d\n", scancode);
+
   constexpr auto write_vt_code = [](char code) {
     buf[0] = esc_char;
     buf[1] = '[';
@@ -295,6 +297,24 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
     buf[3] = 0;
   };
 
+  switch (scancode) {
+    case KEY_EQUAL:
+      scancode = alt ? '=' : scancode;
+      break;
+    case Up:
+      scancode = shift ? PageUp : scancode;
+      break;
+    case Down:
+      scancode = shift ? PageDown : scancode;
+      break;
+    case '3':
+      scancode = shift ? '£' : alt ? '#' : scancode;
+      break;
+    case KEY_EQUAL:
+      scancode = shift ? '_' : alt ? '=' : '-';
+      break;
+  }
+  
   if (scancode > 0xFF) {
     // TODO: support modifiers.
     switch (scancode) {
