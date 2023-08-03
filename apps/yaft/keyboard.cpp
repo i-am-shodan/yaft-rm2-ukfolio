@@ -43,7 +43,9 @@ enum SpecialKeys {
   Down,
 
   PageUp,
-  PageDown
+  PageDown,
+
+  Caps
 
 };
 
@@ -210,7 +212,7 @@ const std::vector<EvKeyInfo> keymap = {
   { KEY_KPASTERISK, '*' },
   { KEY_LEFTALT, Alt },
   { KEY_SPACE, ' ' },
-  { KEY_CAPSLOCK, Escape},
+  { KEY_CAPSLOCK, Caps},
   // { KEY_F1 59
   // { KEY_F2 60
   // { KEY_F3 61
@@ -280,7 +282,7 @@ const char*
 getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
   static std::array<char, 512> buf;
 
-  printf("Received Scancode = %d\n", scancode);
+  printf("Received Scancode! = %d\n", scancode);
 
   constexpr auto write_vt_code = [](char code) {
     buf[0] = esc_char;
@@ -314,14 +316,14 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
       break;
     case '0':
       scancode = shift ? '_' : alt ? '+' : scancode;
-      alt = scancode == '=' ? false : alt;
+      alt = scancode == '+' ? false : alt;
       break;
     case '/':
       scancode = alt ? '\\' : scancode;
       alt = scancode == '\\' ? false : alt;
       break;
-    case KEY_SEMICOLON:
-      scancode = shift ? '@' : scancode;
+    case 34:
+      scancode = '@';
       break;
     case ',':
       scancode = alt ? '{' : scancode;
@@ -333,9 +335,9 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
       break;
     case KEY_EQUAL:
       scancode = shift ? '_' : alt ? '=' : '-';
-      alt = scancode == '£' ? false : alt;
+      alt = scancode == '=' ? false : alt;
       break;
-    case KEY_CAPSLOCK:
+    case Caps:
       scancode = shift ? '`' : Escape;
       alt = scancode == '`' ? false : alt;
       break;
