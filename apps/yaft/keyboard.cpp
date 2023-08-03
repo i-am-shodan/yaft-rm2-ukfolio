@@ -322,12 +322,22 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
       scancode = alt ? '\\' : scancode;
       alt = scancode == '\\' ? false : alt;
       break;
-    case 50:
-    case 39:
-      scancode = '@';
-      alt = false;
-      //scancode = alt ? '@' : scancode;
-      //alt = scancode == '@' ? false : alt;
+
+    // 2 = 50
+    // shift 2 = 34
+    // alt 2 = 50
+
+    // ' = 39
+    // shift ' = 34
+    // alt ' = 39
+
+    case '2':
+      scancode = shift ? '"' : scancode;
+      shift = shift == '"' ? false : shift;
+      break;
+    case '\'':
+      scancode = shift ? '@' : scancode;
+      shift = shift == '@' ? false : shift;
       break;
     case ',':
       scancode = alt ? '{' : scancode;
