@@ -306,9 +306,38 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
       break;
     case '3':
       scancode = shift ? '£' : alt ? '#' : scancode;
+      alt = scancode == '#' ? false : alt;
+      break;
+    case '9':
+      scancode = shift ? '(' : alt ? '~' : scancode;
+      alt = scancode == '~' ? false : alt;
+      break;
+    case '0':
+      scancode = shift ? '_' : alt ? '=' : scancode;
+      alt = scancode == '=' ? false : alt;
+      break;
+    case '/':
+      scancode = alt ? '\\' : scancode;
+      alt = scancode == '\\' ? false : alt;
+      break;
+    case '\'':
+      scancode = shift ? '@' : scancode;
+      break;
+    case '<':
+      scancode = alt ? '{' : scancode;
+      alt = scancode == '{' ? false : alt;
+      break;
+    case '>':
+      scancode = alt ? '}' : scancode;
+      alt = scancode == '}' ? false : alt;
       break;
     case KEY_EQUAL:
       scancode = shift ? '_' : alt ? '=' : '-';
+      alt = scancode == '£' ? false : alt;
+      break;
+    case KEY_CAPSLOCK:
+      scancode = shift ? '`' : Escape;
+      alt = scancode == '`' ? false : alt;
       break;
   }
   
