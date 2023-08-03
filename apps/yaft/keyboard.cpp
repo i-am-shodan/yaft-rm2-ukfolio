@@ -323,7 +323,8 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
       alt = scancode == '\\' ? false : alt;
       break;
     case 34:
-      scancode = '@';
+      scancode = alt ? '@' : scancode;
+      alt = scancode == '@' ? false : alt;
       break;
     case ',':
       scancode = alt ? '{' : scancode;
