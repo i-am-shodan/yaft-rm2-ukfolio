@@ -210,7 +210,7 @@ const std::vector<EvKeyInfo> keymap = {
   { KEY_KPASTERISK, '*' },
   { KEY_LEFTALT, Alt },
   { KEY_SPACE, ' ' },
-  // { KEY_CAPSLOCK
+  { KEY_CAPSLOCK, Escape},
   // { KEY_F1 59
   // { KEY_F2 60
   // { KEY_F3 61
@@ -313,21 +313,21 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
       alt = scancode == '~' ? false : alt;
       break;
     case '0':
-      scancode = shift ? '_' : alt ? '=' : scancode;
+      scancode = shift ? '_' : alt ? '+' : scancode;
       alt = scancode == '=' ? false : alt;
       break;
     case '/':
       scancode = alt ? '\\' : scancode;
       alt = scancode == '\\' ? false : alt;
       break;
-    case '\'':
+    case KEY_SEMICOLON:
       scancode = shift ? '@' : scancode;
       break;
-    case '<':
+    case ',':
       scancode = alt ? '{' : scancode;
       alt = scancode == '{' ? false : alt;
       break;
-    case '>':
+    case '.':
       scancode = alt ? '}' : scancode;
       alt = scancode == '}' ? false : alt;
       break;
