@@ -307,7 +307,7 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
       scancode = shift ? PageDown : scancode;
       break;
     case '3':
-      scancode = shift ? '£' : alt ? '#' : scancode;
+      scancode = shift ? (int)'£' : alt ? '#' : scancode;
       alt = scancode == '#' ? false : alt;
       break;
     case '9':
@@ -322,24 +322,11 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
       scancode = alt ? '\\' : scancode;
       alt = scancode == '\\' ? false : alt;
       break;
-
-    // 2 = 50
-    // shift 2 = 34
-    // alt 2 = 50
-
-    // ' = 39
-    // shift ' = 34
-    // alt ' = 39
-
     case '2':
       scancode = shift ? '"' : alt ? '@' : scancode;
       shift = scancode == '"' ? false : shift;
       alt = scancode == '@' ? false : alt;
       break;
-    //case '\'':
-      //scancode = shift ? '@' : scancode;
-      //shift = shift == '@' ? false : shift;
-      //break;
     case ',':
       scancode = alt ? '{' : scancode;
       alt = scancode == '{' ? false : alt;
@@ -349,11 +336,13 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
       alt = scancode == '}' ? false : alt;
       break;
     case KEY_EQUAL:
+      printf("Modifing scancode for KEY_EQUAL (%d, %d) was %d", shift, alt, scancode);
       scancode = shift ? '_' : alt ? '=' : '-';
       alt = scancode == '=' ? false : alt;
+      printf("Modified to (%d, %d) %d", shift, alt, scancode);
       break;
     case Caps:
-      scancode = shift ? '`' : Escape;
+      scancode = shift ? '`' : (int)Escape;
       alt = scancode == '`' ? false : alt;
       break;
   }
