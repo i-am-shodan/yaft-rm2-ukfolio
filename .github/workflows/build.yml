@@ -37,10 +37,10 @@ jobs:
       #  run: cd ../install && tar -czvf package.tar.gz *
 
       - name: Debug
-        run: ls -l build
+        run: ls -l build/apps/
         
       - name: Debug2
-        run: ls -l ../build/install
+        run: ls -l ../build/apps/yaft
 
       - name: Upload
         uses: actions/upload-artifact@v2
