@@ -32,6 +32,15 @@ jobs:
         with:
           name: package
           path: build/rm2stuff.ipk
+
+      - name: PackageOrig
+        run: cd install && tar -czvf package.tar.gz *
+
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: package
+          path: install/package.tar.gz
   release:
     runs-on: ubuntu-latest
     needs: build
