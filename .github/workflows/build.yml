@@ -36,11 +36,17 @@ jobs:
       #- name: PackageOrig
       #  run: cd ../install && tar -czvf package.tar.gz *
 
+      - name: Debug
+        run: ls -l
+        
+      - name: Debug2
+        run: ls -l ../
+
       - name: Upload
         uses: actions/upload-artifact@v2
         with:
           name: package
-          path: install/opt/bin/yaft
+          path: ../install/opt/bin/yaft
   release:
     runs-on: ubuntu-latest
     needs: build
