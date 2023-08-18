@@ -58,7 +58,8 @@ enum SpecialKeys {
   F11,
   F12,
 
-  Caps
+  Caps,
+  RightShift
 };
 
 enum ModifierKeys {
@@ -220,7 +221,7 @@ const std::vector<EvKeyInfo> keymap = {
   { KEY_COMMA, ',', '<' },
   { KEY_DOT, '.', '>' },
   { KEY_SLASH, '/', '?' },
-  { KEY_RIGHTSHIFT, Shift },
+  { KEY_RIGHTSHIFT, RightShift },
   { KEY_KPASTERISK, '*' },
   { KEY_LEFTALT, Alt },
   { KEY_SPACE, ' ' },
@@ -370,6 +371,9 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
     case Caps:
       scancode = shift ? '`' : (int)Escape;
       alt = scancode == '`' ? false : alt;
+      break;
+    case RightShift:
+      scancode = KEY_BACKSLASH;
       break;
   }
   
