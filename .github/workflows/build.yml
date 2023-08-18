@@ -30,13 +30,13 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: package
-          path: build/release-toltec/yaft
+          path: build/release-toltec/apps/yaft
 
       - name: Upload3
         uses: actions/upload-artifact@v2
         with:
           name: package
-          path: build/release-toltec/yaft2
+          path: build/release-toltec/apps/yaft2
 
   release:
     runs-on: ubuntu-latest
