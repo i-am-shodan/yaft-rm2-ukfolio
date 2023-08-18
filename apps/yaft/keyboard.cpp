@@ -363,7 +363,7 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
       scancode = alt ? '}' : scancode;
       alt = scancode == '}' ? false : alt;
       break;
-    case KEY_EQUAL:
+    case KEY_MINUS:
       printf("Modifing scancode for KEY_EQUAL (%d, %d) was %d", shift, alt, scancode);
       scancode = shift ? '_' : alt ? '=' : '-';
       alt = scancode == '=' ? false : alt;
