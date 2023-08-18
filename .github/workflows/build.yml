@@ -26,6 +26,12 @@ jobs:
           name: package
           path: build/release-toltec/rm2stuff.ipk
 
+      - name: Dir
+        run: ls -l build/
+
+      - name: Dir
+        run: ls -l build/release-toltec/
+
       - name: Upload2
         uses: actions/upload-artifact@v2
         with:
