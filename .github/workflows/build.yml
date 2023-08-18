@@ -27,10 +27,13 @@ jobs:
           path: build/release-toltec/rm2stuff.ipk
 
       - name: Dir
-        run: ls -l build/
+        run: ls -l build/release-toltec/apps
 
       - name: Dir
-        run: ls -l build/release-toltec/
+        run: ls -l build/release-toltec/yaft
+
+      - name: Dir
+        run: ls -l
 
       - name: Upload2
         uses: actions/upload-artifact@v2
