@@ -294,7 +294,7 @@ const char*
 getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
   static std::array<char, 512> buf;
 
-  printf("Received Scancode! = %d\n", scancode);
+  //printf("Received Scancode! = %d\n", scancode);
 
   constexpr auto write_vt_code = [](char code) {
     buf[0] = esc_char;
@@ -363,11 +363,9 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
       scancode = alt ? '}' : scancode;
       alt = scancode == '}' ? false : alt;
       break;
-    case 45:
-      printf("Modifing scancode for KEY_EQUAL (%d, %d) was %d", shift, alt, scancode);
+    case 45: // -_= key
       scancode = shift ? '_' : alt ? '=' : '-';
       alt = scancode == '=' ? false : alt;
-      printf("Modified to (%d, %d) %d", shift, alt, scancode);
       break;
     case Caps:
       scancode = shift ? '`' : (int)Escape;
