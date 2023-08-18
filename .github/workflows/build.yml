@@ -26,20 +26,17 @@ jobs:
           name: package
           path: build/release-toltec/rm2stuff.ipk
 
-      - name: Dir
-        run: ls -l build/release-toltec/apps
-
-      - name: Dir
-        run: ls -l build/release-toltec/yaft
-
-      - name: Dir
-        run: ls -l
-
       - name: Upload2
         uses: actions/upload-artifact@v2
         with:
           name: package
-          path: build/apps/yaft
+          path: build/release-toltec/yaft
+
+      - name: Upload3
+        uses: actions/upload-artifact@v2
+        with:
+          name: package
+          path: build/release-toltec/yaft2
 
   release:
     runs-on: ubuntu-latest
@@ -82,6 +79,17 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: yaft
           asset_name: yaft
+          asset_content_type: application/gzip
+
+      - name: Upload my Release Package
+        id: upload-my-release-asset2
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: yaft2
+          asset_name: yaft2
           asset_content_type: application/gzip
 
 
