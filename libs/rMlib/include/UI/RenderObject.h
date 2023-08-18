@@ -23,7 +23,7 @@ struct BuildContext {
 };
 
 class RenderObject {
-  static int roCount;
+  static inline int roCount = 0;
 
 public:
   RenderObject(typeID::type_id_t typeID) : mTypeID(typeID), mID(roCount++) {
@@ -40,7 +40,9 @@ public:
   }
 
   Size layout(const Constraints& constraints) {
-    if (needsLayout()) {
+    if (needsLayout() || constraints != lastConstraints) {
+      lastConstraints = constraints;
+
       const auto result = doLayout(constraints);
       assert(result.width != Constraints::unbound &&
              result.height != Constraints::unbound);
@@ -143,6 +145,7 @@ private:
   rmlib::Rect rect;
 
   Size lastSize = { 0, 0 };
+  Constraints lastConstraints = {};
 
   // TODO: are both needed?
   CachedBool needsLayoutCache;
@@ -159,8 +162,6 @@ protected:
   bool mInRebuild = false;
 #endif
 };
-
-int RenderObject::roCount = 0;
 
 template<typename Widget>
 class LeafRenderObject : public RenderObject {

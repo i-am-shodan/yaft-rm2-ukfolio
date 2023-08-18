@@ -2,14 +2,6 @@ project(rMlib)
 
 option(EMULATE "Emulate a rM tablet using SDL" OFF)
 
-set(RMLIB_INCLUDES
-  include/Canvas.h
-  include/Device.h
-  include/FrameBuffer.h
-  include/Graphics.h
-  include/Input.h
-  include/MathUtil.h)
-
 set(RMLIB_SOURCES
   Device.cpp
   FrameBuffer.cpp
@@ -45,7 +37,8 @@ if (NOT APPLE)
   target_link_libraries(${PROJECT_NAME}
     PRIVATE
       ${LIBEVDEV_LIBRARY}
-      udev)
+      udev
+      linux::mxcfb)
 
     target_include_directories(${PROJECT_NAME}
       PRIVATE ${LIBEVDEV_INCLUDE_DIR})
@@ -68,5 +61,5 @@ if (EMULATE)
     EMULATE_SCALE=2)
 endif()
 
-install(TARGETS ${PROJECT_NAME} DESTINATION lib)
-install(FILES ${RMLIB_INCLUDES} DESTINATION include/rmlib)
+install(TARGETS ${PROJECT_NAME} DESTINATION opt/lib)
+install(DIRECTORY include/ DESTINATION opt/include/rmlib)

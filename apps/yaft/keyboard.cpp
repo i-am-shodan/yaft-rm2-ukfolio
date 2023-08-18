@@ -45,8 +45,20 @@ enum SpecialKeys {
   PageUp,
   PageDown,
 
-  Caps
+  F1,
+  F2,
+  F3,
+  F4,
+  F5,
+  F6,
+  F7,
+  F8,
+  F9,
+  F10,
+  F11,
+  F12,
 
+  Caps
 };
 
 enum ModifierKeys {
@@ -213,16 +225,16 @@ const std::vector<EvKeyInfo> keymap = {
   { KEY_LEFTALT, Alt },
   { KEY_SPACE, ' ' },
   { KEY_CAPSLOCK, Caps},
-  // { KEY_F1 59
-  // { KEY_F2 60
-  // { KEY_F3 61
-  // { KEY_F4 62
-  // { KEY_F5 63
-  // { KEY_F6 64
-  // { KEY_F7 65
-  // { KEY_F8 66
-  // { KEY_F9 67
-  // { KEY_F10 68
+  { KEY_F1, F1 },
+  { KEY_F2, F2 },
+  { KEY_F3, F3 },
+  { KEY_F4, F4 },
+  { KEY_F5, F5 },
+  { KEY_F6, F6 },
+  { KEY_F7, F7 },
+  { KEY_F8, F8 },
+  { KEY_F9, F9 },
+  { KEY_F10, F10 },
   // { KEY_NUMLOCK 69
   // { KEY_SCROLLLOCK 70
   { KEY_KP7, '7' },
@@ -241,8 +253,8 @@ const std::vector<EvKeyInfo> keymap = {
 
   // { KEY_ZENKAKUHANKAKU 85
   // { KEY_102ND 86
-  // { KEY_F11 87
-  // { KEY_F12 88
+  { KEY_F11, F11 },
+  { KEY_F12, F12 },
   // { KEY_RO 89
   // { KEY_KATAKANA 90
   // { KEY_HIRAGANA 91
@@ -290,6 +302,22 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
     buf[2] = code;
     buf[3] = '~';
     buf[4] = 0;
+  };
+
+  constexpr auto write_ss3 = [](char code) {
+    buf[0] = esc_char;
+    buf[1] = 'O';
+    buf[2] = code;
+    buf[3] = 0;
+  };
+
+  constexpr auto write_hi_vt_code = [](char a, char b) {
+    buf[0] = esc_char;
+    buf[1] = '[';
+    buf[2] = a;
+    buf[3] = b;
+    buf[4] = '~';
+    buf[5] = 0;
   };
 
   constexpr auto write_xt_code = [](char code, bool appCursor) {
@@ -395,6 +423,43 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
       case PageDown:
         write_vt_code('6');
         return buf.data();
+
+      case F1:
+        write_ss3('P');
+        return buf.data();
+      case F2:
+        write_ss3('Q');
+        return buf.data();
+      case F3:
+        write_ss3('R');
+        return buf.data();
+      case F4:
+        write_ss3('S');
+        return buf.data();
+      case F5:
+        write_hi_vt_code('1', '5');
+        return buf.data();
+      case F6:
+        write_hi_vt_code('1', '7');
+        return buf.data();
+      case F7:
+        write_hi_vt_code('1', '8');
+        return buf.data();
+      case F8:
+        write_hi_vt_code('1', '9');
+        return buf.data();
+      case F9:
+        write_hi_vt_code('2', '0');
+        return buf.data();
+      case F10:
+        write_hi_vt_code('2', '1');
+        return buf.data();
+      case F11:
+        write_hi_vt_code('2', '3');
+        return buf.data();
+      case F12:
+        write_hi_vt_code('2', '4');
+        return buf.data();
     }
 
     return nullptr;
@@ -437,9 +502,10 @@ Keyboard::Key::Key(const KeyInfo& info, rmlib::Rect rect)
   : info(info), keyRect(rect) {}
 
 OptError<>
-Keyboard::init(rmlib::fb::FrameBuffer& fb, terminal_t& term) {
+Keyboard::init(rmlib::fb::FrameBuffer& fb, terminal_t& term, bool isLandscape) {
   this->term = &term;
   this->fb = &fb;
+  this->isLandscape = isLandscape;
 
   TRY(input.openAll());
 
@@ -454,16 +520,32 @@ Keyboard::initKeyMap() {
     physicalKeys.emplace(keyInfo.code, PhysicalKey{ keyInfo });
   }
 
-  if (term->isLandscape) {
+  // calculate valid screen region
+  if (isLandscape) {
+    startHeight = fb->canvas.width() - 1;
+  } else {
+    startHeight = fb->canvas.height() -
+                  (hidden ? hidden_keyboard_height : keyboard_height) - 1;
+  }
+
+  this->screenRect = Rect{ { term->marginLeft, term->marginTop },
+                           { term->width - term->marginLeft - 1,
+                             startHeight - term->marginTop } };
+
+  // skip virtual keys if in landscape mode
+  if (isLandscape) {
+    term_resize(
+      term, fb->canvas.height(), fb->canvas.width(), /* report */ true);
     return;
   }
 
   baseKeyWidth = fb->canvas.width() / row_size;
-  startHeight =
-    fb->canvas.height() - (hidden ? hidden_keyboard_height : keyboard_height);
 
   // Resize the terminal to make place for the keyboard.
-  term_resize(term, fb->canvas.width(), startHeight, /* isLandscape */ false);
+  term_resize(term,
+              fb->canvas.width(),
+              startHeight,
+              /* report */ true);
 
   // Setup the keymap.
   keys.clear();
@@ -498,10 +580,6 @@ Keyboard::initKeyMap() {
 
     y += key_height;
   }
-
-  int marginLeft = term->width - term->cols * CELL_WIDTH;
-  this->screenRect = Rect{ { marginLeft, term->marginTop },
-                           { term->width - 1, term->height - 1 } };
 }
 
 void
@@ -561,7 +639,7 @@ Keyboard::drawKey(const Key& key) const {
 
 void
 Keyboard::draw() const {
-  if (term->isLandscape) {
+  if (isLandscape) {
     return;
   }
 
@@ -708,7 +786,7 @@ handleGesture(Keyboard& kb, const SwipeGesture& gesture) {
 
 template<typename Event>
 void
-handleScreenEvent(Keyboard& kb, const Event& ev) {
+handleScreenEvent(Keyboard& kb, const Event& ev, const Point loc) {
   if ((kb.term->mode & ALL_MOUSE_MODES) == 0) {
     return;
   }
@@ -725,9 +803,9 @@ handleScreenEvent(Keyboard& kb, const Event& ev) {
   }
 
   const auto slot = event_traits<Event>::getSlot(ev);
-  const auto loc = ev.location - kb.screenRect.topLeft;
+  const auto scaled_loc = loc - kb.screenRect.topLeft;
   std::array<char, 6> buf;
-  initMouseBuf(buf, loc);
+  initMouseBuf(buf, scaled_loc);
 
   // Mouse down on first finger if mouse is not down.
   if (ev.type == event_traits<Event>::down_type && kb.mouseSlot == -1 &&
@@ -748,20 +826,20 @@ handleScreenEvent(Keyboard& kb, const Event& ev) {
     // Send mouse up code
     buf[3] += 3; // mouse release
     write(kb.term->fd, buf.data(), buf.size());
-  } else if (kb.mouseSlot == slot && kb.lastMousePos != loc &&
+  } else if (kb.mouseSlot == slot && kb.lastMousePos != scaled_loc &&
              (kb.term->mode & MODE_MOUSE_MOVE) != 0) {
     buf[3] += 32; // mouse move
     write(kb.term->fd, buf.data(), buf.size());
   }
-  kb.lastMousePos = loc;
+  kb.lastMousePos = scaled_loc;
 }
 
 template<typename Event>
 void
-handleKeyEvent(Keyboard& kb, const Event& ev) {
+handleKeyEvent(Keyboard& kb, const Event& ev, const Point loc) {
   if (ev.type == event_traits<Event>::down_type) {
     // lookup key, skip if outside
-    auto* key = kb.getKey(ev.location);
+    auto* key = kb.getKey(loc);
     if (key == nullptr) {
       return;
     }
@@ -862,10 +940,17 @@ Keyboard::handleEvents(const std::vector<rmlib::input::Event>& events) {
           // If the event is not on the screen or it's a release event of a
           // previously pressed key, handle it as a keyboard event. Otherwise
           // handle it as a screen (mouse) event.
-          if ((!screenRect.contains(ev.location) || isKeyRelease(*this, ev)) && !term->isLandscape) {
-            handleKeyEvent(*this, ev);
+          auto loc = ev.location;
+          if (isLandscape) {
+            loc = Point{
+              loc.y,
+              term->height - loc.x,
+            };
+          }
+          if (!screenRect.contains(loc) || isKeyRelease(*this, ev)) {
+            handleKeyEvent(*this, ev, loc);
           } else {
-            handleScreenEvent(*this, ev);
+            handleScreenEvent(*this, ev, loc);
           }
         } else {
           handlePhysicalKeyEvent(*this, ev);
@@ -877,43 +962,9 @@ Keyboard::handleEvents(const std::vector<rmlib::input::Event>& events) {
 
 void
 Keyboard::updateRepeat() {
-  if (term->isLandscape) {
-    return;
-  }
-
   const auto time = time_source::now();
 
-  for (auto& key : keys) {
-    if (key.slot == -1) {
-      continue;
-    }
-
-    if (time > key.nextRepeat) {
-      // If a modifier is long pressed, stick it.
-      if (isModifier(key.info.code)) {
-        key.held = true;
-
-        drawKey(key);
-        fb->doUpdate(
-          key.keyRect, rmlib::fb::Waveform::DU, rmlib::fb::UpdateFlags::None);
-
-      } else if (key.info.code == Escape) {
-
-        if (hidden) {
-          show();
-        } else {
-          hide();
-        }
-        break;
-
-      } else {
-        sendKeyDown(key);
-      }
-
-      key.nextRepeat += repeat_time;
-    }
-  }
-
+  // handle repeat of physical keys
   for (auto& [_, key] : physicalKeys) {
     (void)_;
 
@@ -929,6 +980,44 @@ Keyboard::updateRepeat() {
       key.nextRepeat += repeat_time;
     }
   }
+
+  // skip virtual keys if in landscape mode
+  if (isLandscape) {
+    return;
+  }
+
+  // handle repeat of virtual keys
+  for (auto& key : keys) {
+    if (key.slot == -1) {
+      continue;
+    }
+
+    if (time > key.nextRepeat) {
+      // If a modifier is long pressed, stick it.
+      if (isModifier(key.info.code)) {
+        key.held = true;
+
+        drawKey(key);
+        fb->doUpdate(
+          key.keyRect, rmlib::fb::Waveform::DU, rmlib::fb::UpdateFlags::None);
+
+        // if escape is long pressed, toggle visibility
+      } else if (key.info.code == Escape) {
+        if (hidden) {
+          show();
+        } else {
+          hide();
+        }
+        break;
+
+        // otherwise, fire the key
+      } else {
+        sendKeyDown(key);
+      }
+
+      key.nextRepeat += repeat_time;
+    }
+  }
 }
 
 void
@@ -937,10 +1026,10 @@ Keyboard::hide() {
     return;
   }
 
+  hidden = true;
+
   initKeyMap();
   draw();
-
-  hidden = true;
 }
 
 void
@@ -949,8 +1038,8 @@ Keyboard::show() {
     return;
   }
 
+  hidden = false;
+
   initKeyMap();
   draw();
-
-  hidden = false;
 }

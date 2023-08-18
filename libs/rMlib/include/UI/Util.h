@@ -44,6 +44,10 @@ struct Constraints {
 
   constexpr bool hasBoundedWidth() const { return max.width != unbound; }
   constexpr bool hasBoundedHeight() const { return max.height != unbound; }
+  constexpr bool isBounded() const {
+    return hasBoundedHeight() && hasFiniteWidth();
+  }
+
   constexpr bool hasFiniteWidth() const { return min.width != unbound; }
   constexpr bool hasFiniteHeight() const { return min.height != unbound; }
 
@@ -74,6 +78,14 @@ struct Constraints {
 
     return Size{ std::min(newWidth, max.width),
                  std::min(newHeight, max.height) };
+  }
+
+  constexpr bool operator==(const Constraints& other) const {
+    return min == other.min && max == other.max;
+  }
+
+  constexpr bool operator!=(const Constraints& other) const {
+    return !(*this == other);
   }
 };
 

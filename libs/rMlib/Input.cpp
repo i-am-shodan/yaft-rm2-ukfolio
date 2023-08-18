@@ -275,11 +275,12 @@ handeDevice(InputManager& mgr, udev_device& dev) {
   }
 
   auto* action = udev_device_get_action(&dev);
+  std::cout << "action: " << (action == nullptr ? "null" : action) << "\n";
+
   if (action == nullptr || action == std::string_view("add")) {
     mgr.open(devnode);
     return;
   }
-  std::cout << "action: " << action << "\n";
   mgr.devices.erase(devnode);
 }
 
@@ -327,6 +328,7 @@ uinput_thread() {
     return;
   }
   bool down = false;
+  bool quit = false;
 
   while (!stop_input) {
     SDL_Event event;
@@ -335,6 +337,7 @@ uinput_thread() {
     switch (event.type) {
       case SDL_QUIT:
         stop_input = true;
+        quit = true;
         break;
       case SDL_MOUSEMOTION:
         if (down) {
@@ -375,7 +378,9 @@ uinput_thread() {
   }
 
   libevdev_uinput_destroy(uidev);
-  kill(getpid(), SIGINT);
+  if (quit) {
+    kill(getpid(), SIGINT);
+  }
 }
 
 #endif
@@ -401,16 +406,7 @@ InputDeviceBase::~InputDeviceBase() {
   }
 }
 
-InputManager::InputManager() {
-#ifdef EMULATE
-  if (!input_ready) {
-    inputThread = std::thread(uinput_thread);
-    while (!input_ready) {
-      usleep(100);
-    }
-  }
-#endif
-}
+InputManager::InputManager() {}
 
 InputManager::~InputManager() {
   if (udevHandle != nullptr) {
@@ -459,6 +455,15 @@ InputManager::open(std::string_view input) {
 
 ErrorOr<BaseDevices>
 InputManager::openAll(bool monitor) {
+#ifdef EMULATE
+  if (!input_ready) {
+    inputThread = std::thread(uinput_thread);
+    while (!input_ready) {
+      usleep(100);
+    }
+  }
+#endif
+
   udev* udevHandle =
     this->udevHandle == nullptr ? udev_new() : this->udevHandle;
 

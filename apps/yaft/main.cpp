@@ -3,6 +3,8 @@
 
 #include "yaft.h"
 
+#include <Device.h>
+
 #include "conf.h"
 #include "util.h"
 
@@ -193,8 +195,8 @@ main(int argc, const char* argv[]) {
   extern const char* shell_cmd; /* defined in conf.h */
   const char* cmd;
   const char** args;
-  int w, h;
-  bool isLandscape;
+  int max_dim;
+  bool isLandscape, wasLandscape;
   uint8_t buf[BUFSIZE];
   ssize_t size;
   struct terminal_t term;
@@ -202,7 +204,7 @@ main(int argc, const char* argv[]) {
   extern volatile sig_atomic_t need_redraw;
   extern volatile sig_atomic_t child_alive;
   extern struct termios termios_orig;
-  static const char* shell_args[3] = { shell_cmd, NULL, "--login" };
+  static const char* shell_args[3] = { shell_cmd, "-l", NULL };
 
   Keyboard keyboard;
 
@@ -216,16 +218,9 @@ main(int argc, const char* argv[]) {
     goto fb_init_failed;
   }
 
-  isLandscape = is_pogo_connected();
-  if (isLandscape) {
-    w = fb->canvas.height();
-    h = fb->canvas.width();
-  } else {
-    w = fb->canvas.width();
-    h = fb->canvas.height();
-  }
-
-  if (!term_init(&term, w, h, isLandscape)) {
+  // Initialize the keyboard with the maximum possible rows and columns.
+  max_dim = std::max(fb->canvas.width(), fb->canvas.height());
+  if (!term_init(&term, max_dim, max_dim)) {
     logging(FATAL, "terminal initialize failed\n");
     goto term_init_failed;
   }
@@ -250,19 +245,38 @@ main(int argc, const char* argv[]) {
   }
   child_alive = true;
 
-  if (keyboard.init(*fb, term).isError()) {
+  isLandscape = rmlib::device::IsPogoConnected();
+  wasLandscape = isLandscape;
+  if (keyboard.init(*fb, term, isLandscape).isError()) {
     logging(FATAL, "Keyboard failed\n");
     goto tty_init_failed;
   }
-
   keyboard.draw();
 
   /* main loop */
   while (child_alive) {
+
+    // If landscape changed, update keymap.
+    isLandscape = rmlib::device::IsPogoConnected();
+    if (isLandscape != wasLandscape) {
+      keyboard.isLandscape = isLandscape;
+      keyboard.initKeyMap();
+      term.shouldClear = true; // redraw terminal.
+      wasLandscape = isLandscape;
+    }
+
+    // Handle signal handler redraw msg.
     if (need_redraw) {
+      term.shouldClear = true;
       need_redraw = false;
+    }
+
+    // If we need to refresh the screen, redraw everything.
+    if (term.shouldClear) {
+      fb->canvas.set(0xFFFF);
+      keyboard.draw();
       redraw(&term);
-      refresh(*fb, &term);
+      refresh(*fb, &term, isLandscape);
     }
 
     auto eventAndFds = [&] {
@@ -293,7 +307,7 @@ main(int argc, const char* argv[]) {
         parse(&term, buf, size);
         if (LAZY_DRAW && size == BUFSIZE)
           continue; /* maybe more data arrives soon */
-        refresh(*fb, &term);
+        refresh(*fb, &term, isLandscape);
       }
     }
 
