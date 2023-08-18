@@ -373,7 +373,7 @@ getKeyCodeStr(int scancode, bool shift, bool alt, bool ctrl, bool appCursor) {
       alt = scancode == '`' ? false : alt;
       break;
     case RightShift:
-      scancode = KEY_BACKSLASH;
+      scancode = shift ? '|' : '\\';
       break;
   }
   
